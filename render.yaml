@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: AllBiz-POS
+    name: nexopos
     env: docker
     plan: free
     dockerfilePath: ./Dockerfile
@@ -14,23 +14,21 @@ services:
       - key: DB_HOST
         fromService:
           type: pserv
-          name: allbizdb
+          name: nexopos-db
           property: host
       - key: DB_PORT
         value: 3306
       - key: DB_DATABASE
-        value: allbizdb
+        value: nexopos_db
       - key: DB_USERNAME
         value: root
       - key: DB_PASSWORD
         fromService:
           type: pserv
-          name: AllBiz-POS
+          name: nexopos-db
           property: connectionString
 
 databases:
-  - name: AllBiz-POS
+  - name: nexopos-db
     plan: free
-    databaseName: allbizdb
-    
-    
+    databaseName: nexopos_db
