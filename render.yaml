@@ -1,13 +1,9 @@
 services:
   - type: web
-    name: nexopos
-    env: php
+    name: AllBiz-POS
+    env: docker
     plan: free
-    buildCommand: |
-      composer install --no-dev
-      php artisan key:generate
-      php artisan migrate --force
-    startCommand: php artisan serve --host 0.0.0.0 --port 10000
+    dockerfilePath: ./Dockerfile
     envVars:
       - key: APP_ENV
         value: production
@@ -17,22 +13,24 @@ services:
         value: mysql
       - key: DB_HOST
         fromService:
-          type: mysql
-          name: nexopos-db
+          type: pserv
+          name: allbizdb
           property: host
       - key: DB_PORT
         value: 3306
       - key: DB_DATABASE
-        value: nexopos_db
+        value: allbizdb
       - key: DB_USERNAME
         value: root
       - key: DB_PASSWORD
         fromService:
-          type: mysql
-          name: nexopos-db
-          property: password
+          type: pserv
+          name: AllBiz-POS
+          property: connectionString
 
 databases:
-  - name: nexopos-db
+  - name: AllBiz-POS
     plan: free
-    databaseName: nexopos_db
+    databaseName: allbizdb
+    
+    
