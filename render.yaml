@@ -1,9 +1,10 @@
 services:
   - type: web
     name: nexopos
-    env: docker
-    plan: free
+    runtime: docker
+    repo: https://github.com/your-username/NexoPOS.git
     dockerfilePath: ./Dockerfile
+    plan: free
     envVars:
       - key: APP_ENV
         value: production
@@ -13,8 +14,8 @@ services:
         value: mysql
       - key: DB_HOST
         fromService:
-          type: pserv
           name: nexopos-db
+          type: pserv
           property: host
       - key: DB_PORT
         value: 3306
@@ -24,11 +25,25 @@ services:
         value: root
       - key: DB_PASSWORD
         fromService:
-          type: pserv
           name: nexopos-db
+          type: pserv
           property: connectionString
 
-databases:
-  - name: nexopos-db
-    plan: free
-    databaseName: nexopos_db
+  - type: pserv
+    name: nexopos-db
+    runtime: docker
+    repo: https://github.com/render-examples/mysql
+    envVars:
+      - key: MYSQL_ROOT_PASSWORD
+        value: strongpassword
+      - key: MYSQL_DATABASE
+        value: nexopos_db
+      - key: MYSQL_USER
+        value: root
+      - key: MYSQL_PASSWORD
+        value: strongpassword
+    disk:
+      name: mysql-data
+      mountPath: /var/lib/mysql
+      sizeGB: 5
+      
