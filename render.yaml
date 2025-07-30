@@ -13,10 +13,7 @@ services:
       - key: DB_CONNECTION
         value: mysql
       - key: DB_HOST
-        fromService:
-          name: nexopos-db
-          type: pserv
-          property: host
+        value: nexopos-db
       - key: DB_PORT
         value: 3306
       - key: DB_DATABASE
@@ -24,26 +21,16 @@ services:
       - key: DB_USERNAME
         value: root
       - key: DB_PASSWORD
-        fromService:
-          name: nexopos-db
-          type: pserv
-          property: connectionString
+        value: your_mysql_password_here
 
   - type: pserv
     name: nexopos-db
     runtime: docker
     repo: https://github.com/render-examples/mysql
+    plan: free
     envVars:
       - key: MYSQL_ROOT_PASSWORD
-        value: strongpassword
+        value: your_mysql_password_here
       - key: MYSQL_DATABASE
         value: nexopos_db
-      - key: MYSQL_USER
-        value: root
-      - key: MYSQL_PASSWORD
-        value: strongpassword
-    disk:
-      name: mysql-data
-      mountPath: /var/lib/mysql
-      sizeGB: 5
-      
+        
