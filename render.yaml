@@ -2,7 +2,7 @@ services:
   - type: web
     name: nexopos
     runtime: docker
-    repo: https://github.com/your-username/NexoPOS.git
+    repo: https://github.com/TechBus-Soft/NexoPOS.git
     dockerfilePath: ./Dockerfile
     plan: free
     envVars:
@@ -21,7 +21,7 @@ services:
       - key: DB_USERNAME
         value: root
       - key: DB_PASSWORD
-        value: your_mysql_password_here
+        value: nexoposissecure
 
   - type: pserv
     name: nexopos-db
