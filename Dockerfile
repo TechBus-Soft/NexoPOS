@@ -1,38 +1,38 @@
 FROM php:8.1-apache
 
-# Enable Apache rewrite
+# Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# Install system dependencies
+# Install system packages and PHP extensions
 RUN apt-get update && apt-get install -y \
-    libfreetype6-dev \
-    libjpeg62-turbo-dev \
     libpng-dev \
+    libjpeg62-turbo-dev \
+    libfreetype6-dev \
     libonig-dev \
     zip \
     unzip \
     git \
     curl \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install -j$(nproc) gd mbstring pdo pdo_mysql zip bcmath \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+ && docker-php-ext-configure gd --with-freetype --with-jpeg \
+ && docker-php-ext-install -j$(nproc) gd mbstring pdo pdo_mysql zip bcmath
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy all files to container
+# Copy project files
 COPY . .
 
-# Install Composer globally
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Install Composer from official source
+RUN curl -sS https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer
 
-# Install Laravel dependencies
-RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-dev --optimize-autoloader || true
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader || true
 
 # Set permissions
 RUN chmod -R 775 storage bootstrap/cache || true
 
-# Fix Apache doc root to public/
-RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+# Update Apache doc root to public/
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
+# Expose web port
 EXPOSE 80
