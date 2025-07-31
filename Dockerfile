@@ -1,54 +1,39 @@
-
-# Base PHP image with Apache
+# Use official PHP image with Apache
 FROM php:8.1-apache
 
-# Enable Apache rewrite module
+# Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# Install required PHP extensions and dependencies (including oniguruma)
+# Install required system libraries and PHP extensions
 RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
-    libonig-dev \                    # ✅ Fixes mbstring error (oniguruma)
+    libonig-dev \
     zip \
     unzip \
     git \
     curl \
- && docker-php-ext-configure gd --with-freetype --with-jpeg \
- && docker-php-ext-install pdo pdo_mysql gd mbstring zip bcmath
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo pdo_mysql gd mbstring zip bcmath
 
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy all project files
+# Copy all project files to the container
 COPY . .
 
 # Install Composer globally
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Run Composer install with optimized autoloading
+# Install PHP dependencies
 RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-dev --optimize-autoloader
 
-# Laravel: Create necessary directories and set correct permissions
-RUN mkdir -p storage/framework/{cache,sessions,views} && \
-    chmod -R 775 storage bootstrap/cache
+# Set correct permissions for Laravel storage and bootstrap
+RUN chmod -R 775 storage bootstrap/cache || true
 
-# Laravel: Run config and view optimizations
-RUN php artisan config:clear && \
-    php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
+# Set Apache to serve from Laravel public folder
+RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
-# Laravel (optional): Run database migrations in production (uncomment if DB is ready)
-# RUN php artisan migrate --force
-
-# Apache: Set DocumentRoot to Laravel public/ folder
-RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf \
- && echo '<Directory "/var/www/html/public">
-    AllowOverride All
-    Require all granted
-</Directory>' >> /etc/apache2/apache2.conf
-
-# Expose port 80
+# Expose port 80 for web traffic
 EXPOSE 80
