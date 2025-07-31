@@ -1,31 +1,38 @@
-FROM php:8.2-cli
+# Base image
+FROM php:8.1-apache
 
-# Install system packages & PHP extensions
+# Set working directory
+WORKDIR /var/www/html
+
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
     zip \
     unzip \
     libzip-dev \
+    libonig-dev \
+    libxml2-dev \
     libpng-dev \
-    libjpeg62-turbo-dev \
+    libjpeg-dev \
     libfreetype6-dev \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install gd zip pdo_mysql
+    && docker-php-ext-install pdo_mysql zip
 
-# Install Composer
-COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite
 
-# Set working directory
-WORKDIR /app
+# Copy Laravel app
+COPY . /var/www/html
 
-# Copy application files
-COPY . .
+# Set correct permissions
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
+# Set Apache to use Laravel's public directory
+RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|' /etc/apache2/sites-available/000-default.conf
 
-# Set file permissions
-RUN chown -R www-data:www-data /app
+# Expose port
+EXPOSE 80
 
-CMD [ "php", "artisan", "serve", "--host=0.0.0.0", "--port=8000" ]
+# Start Apache
+CMD ["apache2-foreground"]
