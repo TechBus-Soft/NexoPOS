@@ -31,7 +31,8 @@ RUN COMPOSER_MEMORY_LIMIT=-1 composer install --no-dev --optimize-autoloader
 # Set permissions for Laravel
 RUN chmod -R 775 storage bootstrap/cache
 
-# Set Apache DocumentRoot to Laravel public folder
-RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+# Fix Apache DocumentRoot to use Laravel public directory
+RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
+# Expose port 80
 EXPOSE 80
